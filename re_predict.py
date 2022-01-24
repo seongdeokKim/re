@@ -115,13 +115,13 @@ def main(config):
                     'relation',
                     'probability',
                     'sentence',
-                    ",".join([k for k, _ in samples[i][1].items()]),
+                    "\t".join([k.strip() for k, _ in samples[i][1].items()]),
                 ))
             sys.stdout.write('{}\t{}\t{}\t{}\n'.format(
                 ",".join([index_to_label.get(int(j)) for j in indices[i][:config.top_k]]),
                 ",".join([str(float(j))[:6] for j in probs[i][:config.top_k]]),
                 samples[i][0],
-                ",".join([v for _, v in samples[i][1].items()]),
+                "\t".join([v.strip() for _, v in samples[i][1].items()]),
             ))
 
 
