@@ -110,11 +110,18 @@ def main(config):
         probs, indices = y_hats.cpu().topk(k=len(index_to_label))
 
         for i in range(len(samples)):
+            if i == 0:
+                sys.stdout.write('{}\t{}\t{}\t{}\n'.format(
+                    'relation',
+                    'probability',
+                    'sentence',
+                    ",".join([k for k, _ in samples[i][1].items()]),
+                ))
             sys.stdout.write('{}\t{}\t{}\t{}\n'.format(
                 ",".join([index_to_label.get(int(j)) for j in indices[i][:config.top_k]]),
                 ",".join([str(float(j))[:6] for j in probs[i][:config.top_k]]),
                 samples[i][0],
-                "||".join([k + " : " + v for k, v in samples[i][1].items()]),
+                ",".join([v for _, v in samples[i][1].items()]),
             ))
 
 
