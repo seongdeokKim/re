@@ -96,6 +96,7 @@ if __name__ == '__main__':
         #print(file.strip().replace('.rel', ''))
         id_list.append(file.strip().replace('.rel', ''))
 
+    # Map each id with info. from "id.txt" and "id.rel" and "id.con"
     id_dict = {}
     for id in id_list:
         sent_list = read_sent_info(id)
@@ -125,12 +126,12 @@ if __name__ == '__main__':
                 }
                 entity_dict_list.append(entity_dict)
 
+            # Write the whole features of each sample for relation extraction  
             for rel_info_per_line in rel_info_list:
-                cnt += 1
-                #print(f'...... {cnt} of data ......')
 
                 sent_id = rel_info_per_line.get("sent_id")
-
+                relation = rel_info_per_line.get("relation")
+                
                 left_entity = rel_info_per_line.get("left_entity")
                 left_start_pos = rel_info_per_line.get("left_start_pos")
                 left_end_pos = rel_info_per_line.get("left_end_pos")
@@ -140,27 +141,32 @@ if __name__ == '__main__':
                 right_end_pos = rel_info_per_line.get("right_end_pos")
 
                 # Get the concept of left entity
+                # If info. of "*.con" file is same with info. of "*.rel" file, get the concept according to the entity
                 left_concept = None
                 for entity_dict in entity_dict_list:
                     if entity_dict.get("entity") != left_entity: continue
                     if entity_dict.get("sent_id") != sent_id: continue
                     if entity_dict.get("start_pos") != left_start_pos: continue
                     if entity_dict.get("end_pos") != left_end_pos: continue
+                    
                     left_concept = entity_dict.get("concept")
 
                 # Get the concept of right entity
+                # If info. of "*.con" file is same with info. of "*.rel" file, get the concept according to the entity
                 right_concept = None
                 for entity_dict in entity_dict_list:
                     if entity_dict.get("entity") != right_entity: continue
                     if entity_dict.get("sent_id") != sent_id: continue
                     if entity_dict.get("start_pos") != right_start_pos: continue
                     if entity_dict.get("end_pos") != right_end_pos: continue
+                    
                     right_concept = entity_dict.get("concept")
-
 
                 sent = sent_list[int(sent_id) - 1]
 
                 # Get the span info. of left entity
+                # i2b2 dataset provides us the position of sentence unit (left_start_pos, left_end_pos)
+                # So need to convert position of token unit to position of character unit
                 left_entity_span = None
                 if int(left_start_pos) != 0:
                     start_pos = len(' '.join(sent[: int(left_start_pos)])) + 1
@@ -168,15 +174,13 @@ if __name__ == '__main__':
                 else:
                     start_pos = 0
                     end_pos = start_pos + len(' '.join(sent[: int(left_end_pos) + 1]))
+
                 if left_entity == ' '.join(sent)[start_pos: end_pos].lower():
-                    #print(left_entity == ' '.join(sent)[start_pos: end_pos].lower())
                     left_entity_span = str(start_pos) + '_' + str(end_pos)
-                else:
-                    print()
-                    print(' '.join(sent))
-                    print(left_entity, '||', ' '.join(sent)[start_pos: end_pos].lower())
 
                 # Get the span info. of right entity
+                # i2b2 dataset provides us the position of sentence unit (right_start_pos, right_end_pos)
+                # So need to convert position of token unit to position of character unit
                 right_entity_span = None
                 if int(right_start_pos) != 0:
                     start_pos = len(' '.join(sent[: int(right_start_pos)])) + 1
@@ -184,28 +188,22 @@ if __name__ == '__main__':
                 else:
                     start_pos = 0
                     end_pos = start_pos + len(' '.join(sent[: int(right_end_pos) + 1]))
+                    
                 if right_entity == ' '.join(sent)[start_pos: end_pos].lower():
-                    #print(right_entity == ' '.join(sent)[start_pos: end_pos].lower())
                     right_entity_span = str(start_pos) + '_' + str(end_pos)
-                else:
-                    print()
-                    print(' '.join(sent))
-                    print(right_entity, '||', ' '.join(sent)[start_pos: end_pos].lower())
 
-                if left_concept is None: continue
-                if right_concept is None: continue
-                if left_entity_span is None: continue
-                if right_entity_span is None: continue
-
-                #print('{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}'.format(
-                #    rel_info_per_line.get("relation"),
-                #    left_entity, left_concept, left_entity_span,
-                #    right_entity, right_concept, right_entity_span,
-                #    ' '.join(sent), id
-                #))
-                fw.write('{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\n'.format(
-                    rel_info_per_line.get("relation"),
-                    left_entity, left_concept, left_entity_span,
-                    right_entity, right_concept, right_entity_span,
-                    ' '.join(sent), id
-                ))
+                # Write all features per example                  
+                if left_concept is not None and right concept is not None:
+                    if left_entity_span is not None and right_entity_span is not None:
+                        #print('{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}'.format(
+                        #    relation,
+                        #    left_entity, left_concept, left_entity_span,
+                        #    right_entity, right_concept, right_entity_span,
+                        #    ' '.join(sent), id
+                        #))
+                        fw.write('{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\n'.format(
+                            relation,
+                            left_entity, left_concept, left_entity_span,
+                            right_entity, right_concept, right_entity_span,
+                            ' '.join(sent), id
+                        ))
